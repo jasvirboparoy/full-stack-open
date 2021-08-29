@@ -1,0 +1,12 @@
+note over browser:
+browser sends json data for note
+that contains {content: "...", date: "..."}
+end note
+browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+
+server-->browser: HTTP status 200: {"message":"note created"}
+
+note over browser:
+browser executes the event handler
+that renders notes to display
+end note
