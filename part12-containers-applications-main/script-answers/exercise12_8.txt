@@ -1,0 +1,64 @@
+docker container ls -a
+CONTAINER ID   IMAGE     COMMAND                  CREATED        STATUS        PORTS                     NAMES
+8b1d22dcc631   nginx     "/docker-entrypoint.…"   10 hours ago   Up 10 hours   0.0.0.0:8080->80/tcp      eager_chandrasekhar
+4d587ebb7791   mongo     "docker-entrypoint.s…"   11 hours ago   Up 11 hours   0.0.0.0:3456->27017/tcp   todo-backend_mongo_1
+
+docker exec -it todo-backend_mongo_1 bash
+root@4d587ebb7791:/# 
+
+root@4d587ebb7791:/# mongo -u root -p example
+MongoDB shell version v5.0.8
+connecting to: mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("b405023e-18e0-4d33-a502-210ca084fa7b") }
+MongoDB server version: 5.0.8
+================
+Warning: the "mongo" shell has been superseded by "mongosh",
+which delivers improved usability and compatibility.The "mongo" shell has been deprecated and will be removed in
+an upcoming release.
+For installation instructions, see
+https://docs.mongodb.com/mongodb-shell/install/
+================
+---
+The server generated these startup warnings when booting: 
+        2022-06-01T11:06:55.993+00:00: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem
+---
+---
+        Enable MongoDB's free cloud-based monitoring service, which will then receive and display
+        metrics about your deployment (disk utilization, CPU, operation statistics, etc).
+
+        The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+        and anyone you share the URL with. MongoDB may use this information to make product
+        improvements and to suggest MongoDB products and deployment options to you.
+
+        To enable free monitoring, run the following command: db.enableFreeMonitoring()
+        To permanently disable this reminder, run the following command: db.disableFreeMonitoring()
+---
+> 
+
+> show dbs
+admin         0.000GB
+config        0.000GB
+local         0.000GB
+the_database  0.000GB
+
+> use the_database
+switched to db the_database
+
+> show collections
+todos
+
+> db.todos.find({})
+{ "_id" : ObjectId("6296973fc5dfc2a1e9da92c6"), "text" : "Bye", "done" : false }
+{ "_id" : ObjectId("629744810c291640ce50a045"), "text" : "Test", "done" : false, "__v" : 0 }
+
+> db.todos.insertOne({"text" : "Increase the number of tools in my toolbelt", "done" : false})
+{
+   "acknowledged" : true,
+   "insertedId" : ObjectId("6297df1237a88322f5f90f51")
+}
+
+> db.todos.find({})
+{ "_id" : ObjectId("6296973fc5dfc2a1e9da92c6"), "text" : "Bye", "done" : false }
+{ "_id" : ObjectId("629744810c291640ce50a045"), "text" : "Test", "done" : false, "__v" : 0 }
+{ "_id" : ObjectId("6297df1237a88322f5f90f51"), "text" : "Increase the number of tools in my toolbelt", "done" : false }
+> 
