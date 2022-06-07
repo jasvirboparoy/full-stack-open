@@ -62,3 +62,6 @@ typings/
 
 # Mongodb files
 ./mongo_data
+
+# Redis files
+./redis_data
