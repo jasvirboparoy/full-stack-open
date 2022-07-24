@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import Error from './components/Error'
+import Notification from './components/Notification'
+import personService from './services/persons'
 
 const PhonebookForm = ({ onSubmit, nameVal, nameOnChange, numVal, numOnChange }) => {
   return (
@@ -27,9 +29,17 @@ const PhonebookForm = ({ onSubmit, nameVal, nameOnChange, numVal, numOnChange })
 }
 
 const Person = ({ person }) => {
+  
+  const handleDelete = (person) => {
+    if (window.confirm(`Delete ${person.name}?`)) {
+      personService.deletePerson(person.id)
+    }
+  }
+
   return (
     <div>
       {person.name} {person.number}
+      <button onClick={() => handleDelete(person)}>delete</button>
     </div>
   )
 }
@@ -58,34 +68,65 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filterString, setFilterString] = useState('')
-  const [displayList, setDisplayList] = useState(persons);
+  const [displayList, setDisplayList] = useState(persons)
+  const [notificationMessage, setNotificationMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => { 
-        setPersons(response.data)
+    personService
+      .getAll()
+      .then(returnedPersons => {
+        setPersons(returnedPersons)
         setFilterString('')
-        setDisplayList(response.data)
+        setDisplayList(returnedPersons)
       })
   }, [])
 
   const addNewPerson = (event) => {
     event.preventDefault();
-    
-    const matches = persons.filter(person => person.name === newName)
-    if (matches.length) {
-      return alert(`${newName} is already added to phonebook`)
-    }
 
     const personObject = {
       name: newName,
       number: newNumber,
       id: persons.length + 1,
     }
-    setPersons(persons.concat(personObject))
-    setNewName('')
-    setNewNumber('')
+    
+    // Check if person is already in phone book
+    const existingPerson = persons.find(person => person.name === newName)
+    if (existingPerson !== undefined) {
+      if (window.confirm(`${existingPerson.name} is already added to phonebook, replace old number with a new one?`)) {
+        personService
+          .updatePerson(existingPerson.id, personObject)
+          .then(returnedPerson => {
+            setNewName('')
+            setNewNumber('')
+            setNotificationMessage(`Updated phone number for ${returnedPerson.name}`)
+            setTimeout(() => {
+              setNotificationMessage(null)
+            }, 5000)
+          })
+          .catch(error => {
+            setErrorMessage(`Information of ${newName} has already been removed from server`)
+            setTimeout(() => {
+              setErrorMessage(null)
+            }, 5000)
+          })
+      }
+      return
+    }
+
+    personService
+      .create(personObject)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName('')
+        setNewNumber('')
+
+        setNotificationMessage(`Added ${returnedPerson.name}`)
+        setTimeout(() => {
+          setNotificationMessage(null)
+        }, 5000)
+      })
   }
 
   const filterDisplayList = (event) => {
@@ -111,6 +152,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notificationMessage} />
+      <Error message={errorMessage} />
       <DisplayFilter
         filterString={filterString}
         filterDisplayList={filterDisplayList}
